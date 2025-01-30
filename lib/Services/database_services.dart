@@ -1,4 +1,4 @@
-import 'package:flutter_local_storage/models/libraryModel.dart';
+import 'package:flutter_local_storage/models/Users.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -6,8 +6,8 @@ class DatabaseService {
   static final DatabaseService instance = DatabaseService._constructor();
   DatabaseService._constructor();
   static Database? _db;
-  final databaseName='Library_database.db';
-  final tableName='Library';
+  final databaseName='User_database.db';
+  final tableName='Users';
 
   final String _id='id';
   final String firstName='firstName';
@@ -34,7 +34,7 @@ class DatabaseService {
       onCreate: (db, version){
         db.execute(''' 
         CREATE TABLE $tableName(
-          $_id INTEGER PRIMARY KEY,
+          $_id INTEGER PRIMARY KEY AUTOINCREMENT,
           $firstName TEXT NOT NULL,
           $lastName TEXT NOT NULL,
           $mobileNo INTEGER
@@ -46,43 +46,28 @@ class DatabaseService {
     return database;
   }
 
-  // Future<int> insert(String tableName, Map<String,dynamic> json) async {
-  //   Future<List<Map<String,dynamic>>> query(String tableName, {String? where, List<dynamic>? whereArgs}) async{
-  //     return _db!.query(
-  //       tableName,
-  //       where: where,
-  //       whereArgs: whereArgs
-  //     );
-  //   }
-  //   return _db!.insert(tableName, json);
-  // } 
-
-  Future<int> insert(String tableName, Map<String, dynamic> json) async {
-    return _db!.insert(tableName, json);
+  Future<int> insert(Users user) async {
+    Database db=await instance.databaseCondition;
+    return db.insert(tableName, user.toJson());
   }
 
-  Future<List<Map<String, dynamic>>> query(String tableName, {String? where, List<dynamic>? whereArgs,}) async {
-    return _db!.query(
-      tableName,
-      where: where,
-      whereArgs: whereArgs,
-    );
+  Future<List<Users>> display() async {
+    Database db=await instance.databaseCondition;
+    List<Map<String,dynamic>> map=await db.query(tableName);
+    return List.generate(map.length, (i){
+      return Users.fromJson(map[i]);
+    });
   }
   
-  Future<int> update(String tableName, Map<String,dynamic> json, {String? where, List<dynamic>? whereArgs}) async{
-    return _db!.update(
-      tableName,
-      json,
-      where: where,
-      whereArgs: whereArgs
+  Future<int> updatebyId(Users user) async{
+    Database db=await instance.databaseCondition;
+    return await db.update(
+      tableName, user.toJson(), where: 'id=?', whereArgs: [user.id]
       );
   }
 
-  Future<int> delete(String tableName,{String? where, List<dynamic>? whereArgs}) async{
-    return _db!.delete(
-      tableName,
-      where: where,
-      whereArgs: whereArgs
-    );
+  Future<int> delete(int id) async{
+    Database db=await instance.databaseCondition;
+    return await db.delete(tableName, where: 'id=?', whereArgs: [id]);
   }
 }
