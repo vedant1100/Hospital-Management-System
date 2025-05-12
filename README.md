@@ -1,4 +1,4 @@
-# flutter_local_storage
+# Hospital Management System
 
 A new Flutter project.
 
